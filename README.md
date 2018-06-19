@@ -44,7 +44,7 @@ The easiest way to install both the certbot client and the certbot-s3front plugi
   ```
   apt-get install python-pip python-dev libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev dialog
   ```
-  And then run `pip install certbot-s3front`.
+  And then run `python setup.py install`.
 
 ### How to use it
 

@@ -17,6 +17,7 @@ from certbot.plugins import common
 
 logger = logging.getLogger(__name__)
 
+
 class Authenticator(common.Plugin):
     zope.interface.implements(interfaces.IAuthenticator)
     zope.interface.classProvides(interfaces.IPluginFactory)
@@ -31,6 +32,10 @@ class Authenticator(common.Plugin):
             help="Bucket region name")
         add("s3-directory",
             help="A directory of the S3 bucket/the distribution's origin path")
+        add("s3-access-key", default=os.getenv('AWS_ACCESS_KEY_ID'),
+            help="AWS_ACCESS_KEY_ID for S3 authentication")
+        add("s3-secret-key", default=os.getenv('AWS_SECRET_ACCESS_KEY'),
+            help="AWS_SECRET_ACCESS_KEY for S3 authentication")
 
     def __init__(self, *args, **kwargs):
         super(Authenticator, self).__init__(*args, **kwargs)
@@ -61,7 +66,9 @@ class Authenticator(common.Plugin):
         # upload the challenge file to the desired s3 bucket
         # then run simple http verification
         response, validation = achall.response_and_validation()
-        s3 = boto3.resource('s3', region_name=self.conf('s3-region'))
+        s3 = boto3.resource('s3', region_name=self.conf('s3-region'),
+                            aws_access_key_id=self.conf('s3-access-key'),
+                            aws_secret_access_key=self.conf('s3-secret-key'))
 
         s3.Bucket(self.conf('s3-bucket')).put_object(Key=self._get_key(achall),
                                                      Body=validation,
@@ -78,7 +85,9 @@ class Authenticator(common.Plugin):
 
     def cleanup(self, achalls):
         # pylint: disable=missing-docstring,no-self-use,unused-argument
-        s3 = boto3.resource('s3', region_name=self.conf('s3-region'))
+        s3 = boto3.resource('s3', region_name=self.conf('s3-region'),
+                            aws_access_key_id=self.conf('s3-access-key'),
+                            aws_secret_access_key=self.conf('s3-secret-key'))
         client = s3.meta.client
         for achall in achalls:
             client.delete_object(Bucket=self.conf('s3-bucket'),
